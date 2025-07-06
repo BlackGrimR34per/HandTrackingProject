@@ -5,11 +5,14 @@ import time
 from numpy.ma.core import resize
 
 cv2.namedWindow("Preview")
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 
 mpHands = mp.solutions.hands
 mpDraw = mp.solutions.drawing_utils
 hands = mpHands.Hands()
+
+pTime = 0
+cTime = 0
 
 while True:
     success, img = cap.read()
@@ -18,7 +21,18 @@ while True:
 
     if results.multi_hand_landmarks:
             for handLms in results.multi_hand_landmarks:
+                for id, lm in enumerate(handLms.landmark):
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    print(id, cx, cy)
                 mpDraw.draw_landmarks(img, handLms, mpHands.HAND_CONNECTIONS)
+
+    cTime = time.time()
+    fps = 1/(cTime-pTime)
+    pTime = cTime
+
+    cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3,
+                (255, 0, 0), 3)
 
     cv2.imshow("Preview", img)
     cv2.waitKey(1)
